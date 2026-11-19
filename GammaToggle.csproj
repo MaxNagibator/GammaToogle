@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>GammaToggle</AssemblyName>
+    <Product>Gamma Toggle</Product>
+    <Description>Переключение гаммы экрана по настраиваемой горячей клавише</Description>
+    <Authors>Gamma Toggle contributors</Authors>
+  </PropertyGroup>
+</Project>

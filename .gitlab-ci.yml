@@ -1,0 +1,51 @@
+stages:
+  - build
+  - release
+
+variables:
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  DOTNET_NOLOGO: "1"
+  NUGET_PACKAGES: "$CI_PROJECT_DIR/.nuget/packages"
+
+cache:
+  key: nuget
+  paths:
+    - .nuget/packages/
+
+build_windows:
+  stage: build
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - dotnet publish GammaToggle.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:DebugType=None -p:DebugSymbols=false -o dist
+    - mv dist/GammaToggle.exe dist/GammaToggle-win-x64.exe
+  artifacts:
+    name: "GammaToggle-${CI_COMMIT_REF_SLUG}-win-x64"
+    paths:
+      - dist/GammaToggle-win-x64.exe
+    expire_in: 1 week
+
+release_windows:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  needs:
+    - job: build_windows
+      artifacts: true
+  rules:
+    - if: $CI_COMMIT_TAG
+  before_script:
+    - apk add --no-cache curl
+  script:
+    - >-
+      curl --fail --location
+      --header "JOB-TOKEN: ${CI_JOB_TOKEN}"
+      --upload-file dist/GammaToggle-win-x64.exe
+      "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/gamma-toggle/${CI_COMMIT_TAG}/GammaToggle-win-x64.exe"
+  release:
+    tag_name: "$CI_COMMIT_TAG"
+    name: "Gamma Toggle $CI_COMMIT_TAG"
+    description: "Автономная сборка Gamma Toggle для Windows 10/11 x64. Скачайте EXE и запустите — установка .NET не требуется."
+    assets:
+      links:
+        - name: "Скачать GammaToggle-win-x64.exe"
+          url: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/gamma-toggle/${CI_COMMIT_TAG}/GammaToggle-win-x64.exe"
+          link_type: package
